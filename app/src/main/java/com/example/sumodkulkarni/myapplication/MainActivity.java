@@ -16,6 +16,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.VideoView;
@@ -27,12 +28,15 @@ import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.ViewById;
+import org.w3c.dom.Text;
 
 @EActivity(R.layout.activity_main)
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
     private int videoAdTouchCount = 0;
+    private Thread backgroundThread;
+    MediaPlayer mediaPlayer;
 
     @ViewById
     VideoView videoViewAd;
@@ -49,8 +53,14 @@ public class MainActivity extends AppCompatActivity {
     @ViewById(R.id.relativelayout_main)
     RelativeLayout relativeLayout_main;
 
+    /*@ViewById(R.id.relativelayout_progress)
+    RelativeLayout relativeLayout_progress;*/
+
     @ViewById(R.id.cta_textview)
     TextView cta_textview;
+
+    /*@ViewById(R.id.progress_bar)
+    ProgressBar progressBar;*/
 
     String video_name = "bvs";
 
@@ -71,9 +81,10 @@ public class MainActivity extends AppCompatActivity {
         videoAdTouchCount = 0;
         videoViewMinimized.setVisibility(View.GONE);
         relativeLayout_video_minimized.setVisibility(View.GONE);
+        cta_textview.setVisibility(View.GONE);
         buttonSkipAd.setVisibility(View.VISIBLE);
         relativeLayout_main.setBackgroundColor(getResources().getColor(R.color.black));
-
+//        relativeLayout_progress.setVisibility(View.VISIBLE);
         videoViewAd.setVisibility(View.VISIBLE);
         videoViewAd.start();
     }
@@ -103,17 +114,42 @@ public class MainActivity extends AppCompatActivity {
 
         videoViewAd.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
-            public void onPrepared(MediaPlayer mp) {
+            public void onPrepared(final MediaPlayer mp) {
                 videoViewAd.start();
+                /*progressBar.setMax(mp.getDuration());
+                final int max_duration = mp.getDuration();
+
+                backgroundThread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        while (mp.isPlaying()){
+                            progressBar.setProgress(mp.getCurrentPosition());
+//                            int countdown = max_duration - mp.getCurrentPosition();
+//                            progress_text_view.setText(countdown);
+//                            Log.d(TAG, String.valueOf(countdown));
+                            try {
+                                Thread.sleep(500);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                });
+                backgroundThread.start();*/
             }
         });
+
         videoViewAd.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
+                mp.stop();
                 mp.reset();
                 SkipAd();
             }
         });
+
+
 
         videoViewAd.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -148,6 +184,7 @@ public class MainActivity extends AppCompatActivity {
 
                 }
                 videoAdTouchCount++;
+//                progressBar.setProgress(videoAdTouchCount*25);
                 return false;
             }
         });
@@ -155,15 +192,16 @@ public class MainActivity extends AppCompatActivity {
 
     protected void SkipAd() {
         videoViewAd.stopPlayback();
-        videoViewAd.suspend();
+//        videoViewAd.suspend();
 //        YoYo.with(Techniques.FadeOut)
 //                .duration(5000)
 //                .playOn(findViewById(R.id.video_view_ad));
         videoViewAd.setVisibility(VideoView.GONE);
+        buttonSkipAd.setVisibility(View.GONE);
+//        relativeLayout_progress.setVisibility(View.GONE);
         videoViewMinimized.setVisibility(View.VISIBLE);
         relativeLayout_video_minimized.setVisibility(View.VISIBLE);
         cta_textview.setVisibility(View.VISIBLE);
-        buttonSkipAd.setVisibility(View.GONE);
         relativeLayout_main.setBackground(getApplicationContext().getResources().getDrawable(R.drawable.bvs_poster));
 //        YoYo.with(Techniques.FadeIn)
 //                .duration(5000)
